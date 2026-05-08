@@ -1,0 +1,110 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 100
+
+int n;
+char ch[MAX];
+float freq[MAX]; 
+int left_child[MAX * 2], right_child[MAX * 2], parent[MAX * 2];
+float current_freq[MAX * 2]; 
+
+
+void findMin(int total_nodes, int *x, int *y) {
+    int i;
+    *x = -1;
+    *y = -1;
+    for (i = 0; i < total_nodes; i++) {
+        
+        if (current_freq[i] <= 0 || parent[i] != -1) continue;
+
+        if (*x == -1 || current_freq[i] < current_freq[*x]) {
+            *y = *x;
+            *x = i;
+        } else if (*y == -1 || current_freq[i] < current_freq[*y]) {
+            *y = i;
+        }
+    }
+}
+
+void printCode(int i) {
+    char code[MAX];
+    int top = 0;
+    int curr = i;
+    int p, j;
+
+    while (parent[curr] != -1) {
+        p = parent[curr];
+        if (left_child[p] == curr)
+            code[top++] = '0';
+        else
+            code[top++] = '1';
+        curr = p;
+    }
+
+    for (j = top - 1; j >= 0; j--) {
+        printf("%c", code[j]);
+    }
+}
+
+int main() {
+    int i, x, y, k, found;
+    int total_nodes;
+    char word[MAX];
+
+    printf("Enter no of characters: ");
+    scanf("%d", &n);
+
+    printf("Enter characters: ");
+    for (i = 0; i < n; i++) {
+        scanf(" %c", &ch[i]);
+    }
+
+    printf("Enter frequencies (decimals or integers): ");
+    for (i = 0; i < n; i++) {
+        scanf("%f", &freq[i]);
+        current_freq[i] = freq[i];
+        parent[i] = left_child[i] = right_child[i] = -1;
+    }
+
+    total_nodes = n;
+    while (1) {
+        findMin(total_nodes, &x, &y);
+        if (y == -1) break;
+
+        left_child[total_nodes] = x;
+        right_child[total_nodes] = y;
+        current_freq[total_nodes] = current_freq[x] + current_freq[y];
+        parent[x] = parent[y] = total_nodes;
+        parent[total_nodes] = -1;
+
+        total_nodes++;
+    }
+
+    printf("\n--- Huffman Table ---\n");
+    for (i = 0; i < n; i++) {
+        printf("%c (%.2f): ", ch[i], freq[i]);
+        printCode(i);
+        printf("\n");
+    }
+
+    printf("\nEnter a word to encode: ");
+    scanf("%s", word);
+
+    printf("Encoded String: ");
+    for (i = 0; word[i] != '\0'; i++) {
+        found = 0;
+        for (k = 0; k < n; k++) {
+            if (ch[k] == word[i]) {
+                printCode(k);
+                found = 1;
+                break;
+            }
+        }
+        if (!found) printf("[?]");
+    }
+    printf("\n");
+
+    return 0;
+}
+
